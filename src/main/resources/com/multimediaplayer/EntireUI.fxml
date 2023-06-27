@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.RadialGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+            xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.multimediaplayer.Controller">
+    <top>
+        <HBox alignment="CENTER" style="-fx-background-radius: 7; -fx-background-color: skyblue;"
+              BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets bottom="5.0" left="10.0" right="10.0" top="3.0"/>
+            </BorderPane.margin>
+            <children>
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text="BSMRSTU Media Player" textAlignment="CENTER"
+                      textOrigin="CENTER">
+                    <font>
+                        <Font name="Arial Rounded MT Bold" size="27.0"/>
+                    </font>
+                    <fill>
+                        <RadialGradient centerX="0.6215469613259669" centerY="0.061611374407582936"
+                                        cycleMethod="REFLECT" radius="0.5">
+                            <stops>
+                                <Stop>
+                                    <color>
+                                        <Color/>
+                                    </color>
+                                </Stop>
+                                <Stop offset="0.006711409395973154">
+                                    <color>
+                                        <Color/>
+                                    </color>
+                                </Stop>
+                                <Stop offset="1.0">
+                                    <color>
+                                        <Color red="0.21198830008506775" green="0.3815789520740509"
+                                               blue="0.22046783566474915"/>
+                                    </color>
+                                </Stop>
+                            </stops>
+                        </RadialGradient>
+                    </fill>
+                </Text>
+            </children>
+            <padding>
+                <Insets bottom="10.0" top="10.0"/>
+            </padding>
+        </HBox>
+    </top>
+    <left>
+        <ListView prefHeight="200.0" prefWidth="200.0"/>
+    </left>
+    <right>
+        <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="15.0"
+              style="-fx-background-color: lightgray; -fx-background-radius: 5;" BorderPane.alignment="CENTER">
+            <children>
+                <Text fx:id="current_status" strokeType="OUTSIDE" strokeWidth="0.0" text="STATUS" textAlignment="CENTER"
+                      VBox.vgrow="ALWAYS">
+                    <font>
+                        <Font name="Gill Sans MT Bold" size="20.0"/>
+                    </font>
+                    <VBox.margin>
+                        <Insets bottom="15.0"/>
+                    </VBox.margin>
+                </Text>
+            </children>
+            <cursor>
+                <Cursor fx:constant="DEFAULT"/>
+            </cursor>
+            <effect>
+                <DropShadow height="20.0" radius="9.5" width="20.0">
+                    <color>
+                        <Color red="0.24945175647735596" green="0.4042397737503052" blue="0.46052631735801697"/>
+                    </color>
+                </DropShadow>
+            </effect>
+        </VBox>
+    </right>
+    <bottom>
+        <HBox fx:id="control_bar" alignment="CENTER" spacing="100.0" BorderPane.alignment="CENTER">
+            <children>
+                <HBox fx:id="stop_play_pause_container" alignment="CENTER" spacing="12.0" HBox.hgrow="SOMETIMES">
+                    <children>
+                        <Button fx:id="stop" cancelButton="true" contentDisplay="CENTER" mnemonicParsing="false"
+                                onAction="#stop_media" text="⏹" textAlignment="CENTER" textFill="RED"
+                                HBox.hgrow="ALWAYS">
+                            <font>
+                                <Font size="15.0"/>
+                            </font>
+                        </Button>
+                        <Button fx:id="play_pause" contentDisplay="CENTER" defaultButton="true" mnemonicParsing="false"
+                                onAction="#play_pause_media" text="▶" textAlignment="CENTER" textFill="DARKBLUE"
+                                underline="true" HBox.hgrow="ALWAYS">
+                            <font>
+                                <Font size="15.0"/>
+                            </font>
+                        </Button>
+                        <CheckBox fx:id="mute" mnemonicParsing="false" onAction="#mute_or_unmute" text="MUTE"/>
+                    </children>
+                    <opaqueInsets>
+                        <Insets/>
+                    </opaqueInsets>
+                    <HBox.margin>
+                        <Insets/>
+                    </HBox.margin>
+                </HBox>
+                <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Slider fx:id="duration" cache="true" majorTickUnit="10.0" nodeOrientation="LEFT_TO_RIGHT"
+                                showTickMarks="true" HBox.hgrow="ALWAYS"/>
+                    </children>
+                </HBox>
+                <VBox fx:id="volume_panel" alignment="CENTER" spacing="5.0" HBox.hgrow="SOMETIMES">
+                    <children>
+                        <Slider fx:id="volume" blockIncrement="1.0" majorTickUnit="10.0" orientation="VERTICAL"
+                                showTickLabels="true" showTickMarks="true" value="50.0" VBox.vgrow="ALWAYS">
+                            <padding>
+                                <Insets left="18.0"/>
+                            </padding>
+                        </Slider>
+                        <Label text="Volume"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </bottom>
+    <center>
+        <MediaView fx:id="media_view" fitHeight="430.0" fitWidth="600.0" onMouseClicked="#play_pause_media"
+                   onMouseEntered="#halve_opacity" onMouseExited="#full_opacity" BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets/>
+            </BorderPane.margin>
+            <cursor>
+                <Cursor fx:constant="HAND"/>
+            </cursor>
+        </MediaView>
+    </center>
+    <padding>
+        <Insets bottom="15.0" top="1.0"/>
+    </padding>
+</BorderPane>
