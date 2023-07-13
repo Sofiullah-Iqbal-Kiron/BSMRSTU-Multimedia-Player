@@ -1,14 +1,20 @@
 package com.multimediaplayer;
 
+import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -18,69 +24,154 @@ public class Controller implements Initializable {
     private Button stop, play_pause;
 
     @FXML
-    private Text current_status;
+    private Text media_info, current_status, alert_message, media_mute_info;
 
     @FXML
     private MediaView media_view;
 
     @FXML
-    private Slider duration, volume;
+    private Slider duration_slider, volume;
+
+    @FXML
+    private Label duration_count, total_duration, hours_label, minutes_label, seconds_label;
 
     Media media = new Media(getClass().getResource("video.mp4").toString());
     MediaPlayer mediaPlayer = new MediaPlayer(media);
 
-    /**
-     * Called to initialize a controller after its root element has been
-     * completely processed.
-     *
-     * @param location  The location used to resolve relative paths for the root object, or
-     *                  {@code null} if the location is not known.
-     * @param resources The resources used to localize the root object, or {@code null} if
-     *                  the root object was not localized.
-     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        String media_duration = media.getDuration().toString();
         media_view.setMediaPlayer(mediaPlayer);
-        mediaPlayer.setOnReady(mediaPlayer::play);
+        total_duration.setText(mediaPlayer.getTotalDuration().toString());
+        total_duration.setText(media_duration);
+
+        init_media_player();
+        evaluate_duration_slider();
+        evaluate_volume_slider();
     }
 
     @FXML
     protected void stop_media(ActionEvent e) {
-        if (!mediaPlayer.getStatus().equals(MediaPlayer.Status.STOPPED)) {
-            mediaPlayer.stop();
-            update_status();
+        if (mediaPlayer != null) {
+            if (!mediaPlayer.getStatus().equals(MediaPlayer.Status.STOPPED)) {
+                mediaPlayer.stop();
+                current_status.setText("STOPPED");
+                mediaPlayer.seek(new Duration(0));
+                media_view.setOpacity(1);
+                duration_slider.adjustValue(0);
+            }
         }
+//        exit from platform after few seconds
+//        Platform.exit();
     }
 
     @FXML
     protected void play_pause_media(ActionEvent e) {
-        if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-            play_pause.setText("▶");
-            mediaPlayer.pause();
-            update_status();
-        } else if (mediaPlayer.getStatus() == MediaPlayer.Status.PAUSED) {
-            play_pause.setText("⏸");
+        Status status = mediaPlayer.getStatus();
+        if (status == Status.UNKNOWN || status == Status.HALTED) return;
+        if (status == Status.PAUSED || status == Status.READY) {
             mediaPlayer.play();
-            update_status();
+            current_status.setText("PLAYING...");
+        } else if (status == Status.PLAYING) {
+            mediaPlayer.pause();
+            current_status.setText("PAUSED");
         }
-    }
-
-    @FXML
-    protected void halve_opacity(ActionEvent e) {
-        media_view.setOpacity(0.5);
-    }
-
-    @FXML
-    protected void full_opacity(ActionEvent e) {
-        media_view.setOpacity(1.0);
+        alert_message.setText("Enjoy your music, cheers!");
     }
 
     @FXML
     protected void mute_or_unmute(ActionEvent e) {
-        mediaPlayer.setMute(!mediaPlayer.isMute());
+        boolean muted = mediaPlayer.isMute();
+        mediaPlayer.setMute(!muted);
+        media_mute_info.setText(muted ? "Media muted." : "Media on sound.");
     }
 
-    private void update_status() {
-        current_status.setText(mediaPlayer.getStatus().toString());
+    protected void init_media_player() {
+        mediaPlayer.setOnReady(new Runnable() {
+            @Override
+            public void run() {
+                Duration duration = mediaPlayer.getMedia().getDuration();
+                double seconds = duration.toSeconds();
+                int hours = (int) (seconds / 3600);
+                int minutes = (int) (seconds % 3600) / 60;
+
+                hours_label.setText(String.format("%02d hours", hours));
+                minutes_label.setText(String.format("%02d minutes", minutes));
+                seconds_label.setText(String.format("%02d seconds", (int) seconds % 60));
+
+                duration_slider.setMax(duration.toMillis());
+                total_duration.setText(String.format("%02d:%02d:%02d", hours, minutes, (int) seconds % 60));
+                mediaPlayer.play();
+            }
+        });
+
+        mediaPlayer.setOnPlaying(new Runnable() {
+            @Override
+            public void run() {
+                play_pause.setText("⏸");
+            }
+        });
+
+        mediaPlayer.setOnPaused(new Runnable() {
+            @Override
+            public void run() {
+                play_pause.setText("▶");
+            }
+        });
+
+        mediaPlayer.currentTimeProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                update_duration_count();
+                duration_slider.valueProperty().set(mediaPlayer.getCurrentTime().toMillis());
+            }
+        });
+    }
+
+    protected void evaluate_duration_slider() {
+        duration_slider.valueProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                if (duration_slider.isValueChanging()) {
+                    mediaPlayer.pause();
+                    Duration currentDur = new Duration(duration_slider.getValue());
+                    duration_count.setText(mediaPlayer.getCurrentTime().toString());
+                    mediaPlayer.seek(currentDur);
+                    update_duration_count();
+                    mediaPlayer.play();
+                }
+            }
+        });
+
+        duration_slider.setOnMouseClicked(e -> {
+            mediaPlayer.pause();
+            Duration currentDur = new Duration(duration_slider.getValue());
+            mediaPlayer.seek(currentDur);
+            update_duration_count();
+            mediaPlayer.play();
+        });
+    }
+
+    protected void evaluate_volume_slider() {
+        volume.valueProperty().addListener(new InvalidationListener() {
+            @Override
+            public void invalidated(Observable observable) {
+                if (volume.isValueChanging()) {
+                    mediaPlayer.setVolume(volume.getValue() / 100.0);
+                }
+            }
+        });
+
+        volume.setOnMouseClicked(e -> {
+            mediaPlayer.setVolume(volume.getValue() / 100.0);
+        });
+    }
+
+    protected void update_duration_count() {
+        Duration duration = mediaPlayer.getCurrentTime();
+        double seconds = duration.toSeconds();
+        int hours = (int) (seconds / 3600);
+        int minutes = (int) (seconds % 3600) / 60;
+        duration_count.setText(String.format("%02d:%02d:%02d", hours, minutes, (int) seconds % 60));
     }
 }

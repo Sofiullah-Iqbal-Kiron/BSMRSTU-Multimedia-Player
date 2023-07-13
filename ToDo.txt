@@ -1,0 +1,5 @@
+-> Learn javafx property, bindings and beans.
+-> Add home icon.
+-> Add more icons toward the application, find from iconfx.
+-> double click: toggle between fullscreen and actual screen mode.
+-> design audio spectrum.
