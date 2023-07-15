@@ -7,6 +7,7 @@ module com.multimediaplayer {
     requires com.dlsc.formsfx;
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
+    requires MaterialFX;
 
     opens com.multimediaplayer to javafx.fxml;
     exports com.multimediaplayer;
